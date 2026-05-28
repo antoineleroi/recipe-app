@@ -176,6 +176,30 @@ ${text}`;
       content = content.replace(/```json/g, '').replace(/```/g, '').trim();
     }
     
+    // Unit conversion: US → metric
+    const convertUnits = (ingredients) => {
+      if (!ingredients) return ingredients;
+
+      const round = (n) => Math.round(n * 10) / 10;
+
+      return ingredients.map(ing => {
+        let { amount, unit, item } = ing;
+        if (!unit || !amount) return ing;
+        const u = unit.toLowerCase().trim();
+
+        if (u === 'oz') {
+          return { ...ing, amount: round(amount * 28.35), unit: 'g' };
+        }
+        if (u === 'lb' || u === 'lbs') {
+          return { ...ing, amount: round(amount * 453.6), unit: 'g' };
+        }
+        if (u === 'fl oz' || u === 'fl. oz') {
+          return { ...ing, amount: round(amount * 29.6), unit: 'ml' };
+        }
+        return ing;
+      });
+    };
+
     // Parse the JSON response
     let recipe;
     try {
@@ -195,6 +219,9 @@ ${text}`;
         })
       };
     }
+
+    // Apply unit conversion
+    recipe.ingredients = convertUnits(recipe.ingredients);
 
     return {
       statusCode: 200,
