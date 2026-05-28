@@ -999,6 +999,12 @@
                             <h2 className="text-lg font-semibold mb-4" style={{ color:'#3d2e1f' }}>Filter by Tags</h2>
                             <div className="space-y-2">{allTags.map(tag=>(<button key={tag} onClick={()=>toggleTag(tag)} className="tag text-sm px-3 py-1 rounded-full mr-2 mb-2 transition" style={selectedTags.includes(tag)?{background:'#d4a574',color:'white',fontWeight:600}:{background:'#f5ede1',color:'#6d5738',border:'1px solid #e8dfd3'}}>{tag}</button>))}</div>
                         </div>
+                        {/* Mobile-only: Settings & Sign out */}
+                        <div className="lg:hidden mt-8 pt-6" style={{ borderTop:'1px solid #e8dfd3' }}>
+                            <p className="text-xs mb-3 truncate" style={{ color:'#8b7355' }}>{user?.email}</p>
+                            <button onClick={()=>{onSettings();setSidebarOpen(false);}} className="w-full text-left px-4 py-2 rounded-lg mb-2 font-medium hover:opacity-80 transition" style={{ background:'#f5ede1', color:'#6d5738' }}>⚙️ Settings</button>
+                            <button onClick={onLogout} className="w-full text-left px-4 py-2 rounded-lg font-medium hover:opacity-80 transition" style={{ background:'#fde8e8', color:'#f5576c' }}>Sign out</button>
+                        </div>
                     </div>
                     <div className="flex-1 overflow-y-auto">
                         <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-8">
@@ -1011,6 +1017,7 @@
                                     <h1 className="text-4xl font-semibold" style={{ color:'#3d2e1f' }}>{selectedFolder||'All Recipes'}</h1>
                                     <p className="mt-1" style={{ color:'#8b7355' }}>{recipes.length} recipe{recipes.length!==1?'s':''}{selectedTags.length>0&&` with: ${selectedTags.join(', ')}`}</p>
                                 </div>
+                                <p className="lg:hidden text-sm" style={{ color:'#8b7355' }}>{recipes.length} recipe{recipes.length!==1?'s':''}</p>
                                 <div className="flex gap-2 md:gap-3 items-center flex-wrap">
                                     <div className="text-right mr-2 hidden md:block">
                                         <p className="text-sm" style={{ color:'#8b7355' }}>{user?.email}</p>
@@ -1020,8 +1027,8 @@
                                             <button onClick={onLogout} className="text-xs hover:opacity-80" style={{ color:'#d4a574' }}>Sign out</button>
                                         </div>
                                     </div>
-                                    <button onClick={onShoppingClick} className="text-white px-6 py-3 rounded-xl font-semibold hover:opacity-90 transition relative" style={{ background:'#97c459' }}>
-                                        🛒 Shopping List
+                                    <button onClick={onShoppingClick} className="text-white px-4 md:px-6 py-3 rounded-xl font-semibold hover:opacity-90 transition relative text-sm md:text-base" style={{ background:'#97c459' }}>
+                                        🛒 <span className="hidden md:inline">Shopping List</span>
                                         {shoppingListCount>0&&<span className="absolute -top-2 -right-2 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center" style={{ background:'#f5576c' }}>{shoppingListCount}</span>}
                                     </button>
                                     <button onClick={onMealPlanClick} className="text-white px-4 md:px-6 py-3 rounded-xl font-semibold hover:opacity-90 transition relative text-sm md:text-base" style={{ background:'#FAC775' }}>
