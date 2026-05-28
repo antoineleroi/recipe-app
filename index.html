@@ -220,6 +220,7 @@
             toggleShoppingItem: async (userId, householdId, itemId, isManual) => { const list = await storage.getShoppingList(userId, householdId); if(isManual){const item=list.manualItems.find(i=>i.id===itemId);if(item)item.checked=!item.checked;}else{const item=list.items.find(i=>i.item===itemId);if(item)item.checked=!item.checked;} await storage.saveShoppingList(userId, householdId, list); },
             clearShoppingList: async (userId, householdId) => { await storage.saveShoppingList(userId, householdId, { items:[], manualItems:[] }); },
             removeShoppingItem: async (userId, householdId, itemId, isManual) => { const list = await storage.getShoppingList(userId, householdId); if(isManual){list.manualItems=list.manualItems.filter(i=>i.id!==itemId);}else{list.items=list.items.filter(i=>i.item!==itemId);} await storage.saveShoppingList(userId, householdId, list); },
+            editShoppingItem: async (userId, householdId, itemId, isManual, amount, unit) => { const list = await storage.getShoppingList(userId, householdId); if(isManual){const item=list.manualItems.find(i=>i.id===itemId);if(item){item.amount=parseFloat(amount)||0;item.unit=unit;}}else{const item=list.items.find(i=>i.item===itemId);if(item){item.amount=parseFloat(amount)||0;item.unit=unit;}} await storage.saveShoppingList(userId, householdId, list); },
             removeRecipeFromShoppingList: async (userId, householdId, recipeName) => {
                 const list = await storage.getShoppingList(userId, householdId);
                 list.items = list.items.filter(item => {
@@ -963,7 +964,7 @@
                     {view==='edit' && selectedRecipe && canEdit && <AddRecipeView initialRecipe={selectedRecipe} onBack={()=>setView('recipe')} onSubmit={async(updatedRecipe)=>{setProcessing(true);await storage.updateRecipe(updatedRecipe.id,updatedRecipe);setSelectedRecipe(updatedRecipe);setScaledServings(updatedRecipe.servings);setProcessing(false);setView('recipe');}} processing={processing} unsplashKey={unsplashKey} />}
                     {view==='recipe' && selectedRecipe && <RecipeDetailView recipe={selectedRecipe} onBack={()=>setView('home')} onStartCooking={()=>setView('cooking')} onAddToShoppingList={async(servings)=>{await storage.addToShoppingList(user.uid,householdId,selectedRecipe,servings);toast(`"${selectedRecipe.name}" added to shopping list`,'success');}} scaledServings={scaledServings} setScaledServings={setScaledServings} onEdit={canEdit?()=>setView('edit'):null} onDelete={canEdit?async()=>{if(window.confirm(`Delete "${selectedRecipe.name}"?`)){await storage.deleteRecipe(selectedRecipe.id);setSelectedRecipe(null);setView('home');toast('Recipe deleted','info');}}:null} estimateNutrition={estimateNutrition} setSelectedRecipe={setSelectedRecipe} onAddToMealPlan={()=>{setMealPlannerPreselect(selectedRecipe);setView('mealplanner');}} canEdit={canEdit} />}
                     {view==='cooking' && selectedRecipe && <CookingModeView recipe={selectedRecipe} onExit={()=>setView('recipe')} completedSteps={completedSteps} setCompletedSteps={setCompletedSteps} scaledServings={scaledServings} />}
-                    {view==='shopping' && <ShoppingListView shoppingList={shoppingList} onBack={()=>setView('home')} onToggleItem={async(id,isManual)=>await storage.toggleShoppingItem(user.uid,householdId,id,isManual)} onAddManualItem={async(item,amount,unit,category)=>await storage.addManualItem(user.uid,householdId,item,amount,unit,category)} onRemoveItem={async(id,isManual)=>await storage.removeShoppingItem(user.uid,householdId,id,isManual)} onRemoveRecipe={async(name)=>await storage.removeRecipeFromShoppingList(user.uid,householdId,name)} onClearList={async()=>{if(window.confirm('Clear entire shopping list?')){await storage.clearShoppingList(user.uid,householdId);toast('Shopping list cleared','info');}}} canEdit={canEdit} />}
+                    {view==='shopping' && <ShoppingListView shoppingList={shoppingList} onBack={()=>setView('home')} onToggleItem={async(id,isManual)=>await storage.toggleShoppingItem(user.uid,householdId,id,isManual)} onAddManualItem={async(item,amount,unit,category)=>await storage.addManualItem(user.uid,householdId,item,amount,unit,category)} onRemoveItem={async(id,isManual)=>await storage.removeShoppingItem(user.uid,householdId,id,isManual)} onEditItem={async(id,isManual,amount,unit)=>await storage.editShoppingItem(user.uid,householdId,id,isManual,amount,unit)} onRemoveRecipe={async(name)=>await storage.removeRecipeFromShoppingList(user.uid,householdId,name)} onClearList={async()=>{if(window.confirm('Clear entire shopping list?')){await storage.clearShoppingList(user.uid,householdId);toast('Shopping list cleared','info');}}} canEdit={canEdit} />}
                     {view==='mealplanner' && <MealPlannerView mealPlan={mealPlan} recipes={recipes} onBack={()=>{setMealPlannerPreselect(null);setView('home');}} onAddRecipe={async(dayKey,mealType,recipeId,servings,manualText)=>{if(recipeId==='manual')await storage.addManualEntryToMealPlan(user.uid,householdId,dayKey,mealType,manualText);else await storage.addRecipeToMealPlan(user.uid,householdId,dayKey,mealType,recipeId,servings);}} onRemoveRecipe={async(dayKey,mealType,index)=>await storage.removeRecipeFromMealPlan(user.uid,householdId,dayKey,mealType,index)} onUpdateNotes={async(dayKey,notes)=>await storage.updateDayNotes(user.uid,householdId,dayKey,notes)} onClearPlan={async()=>{if(window.confirm('Clear entire meal plan?')){await storage.clearMealPlan(user.uid,householdId);toast('Meal plan cleared','info');}}} onAddToShoppingList={async()=>{const count=await storage.addMealPlanToShoppingList(user.uid,householdId,recipes);toast(`${count} recipes added to shopping list`,'success');}} mealPlanPeople={mealPlanPeople} setMealPlanPeople={setMealPlanPeople} preselectedRecipe={mealPlannerPreselect} canEdit={canEdit} />}
                     {view==='preview' && extractedRecipe && <PreviewView recipe={extractedRecipe} images={extractedImages} onApprove={async(recipe)=>{await storage.addRecipe(recipe);setExtractedRecipe(null);setExtractedImages([]);setView('home');toast('Recipe saved!','success');}} onReject={()=>{setExtractedRecipe(null);setExtractedImages([]);setView('home');}} onEdit={(edited)=>setExtractedRecipe(edited)} />}
                     {view==='batch-preview' && batchExtractedRecipes.length>0 && (
@@ -1765,9 +1766,12 @@
         }
 
         // ─── SHOPPING LIST ────────────────────────────────────────────────────────
-        function ShoppingListView({ shoppingList, onBack, onToggleItem, onAddManualItem, onRemoveItem, onRemoveRecipe, onClearList }) {
+        function ShoppingListView({ shoppingList, onBack, onToggleItem, onAddManualItem, onRemoveItem, onEditItem, onRemoveRecipe, onClearList }) {
             const [showAddItem, setShowAddItem] = useState(false);
             const [newItem, setNewItem] = useState({ item:'',amount:'',unit:'',category:'fresh' });
+            const [editingItem, setEditingItem] = useState(null); // { id, isManual, amount, unit }
+            const handleEditSave = async (id, isManual) => { if(editingItem){await onEditItem(id,isManual,editingItem.amount,editingItem.unit);setEditingItem(null);} };
+            const startEdit = (id, isManual, amount, unit) => setEditingItem({ id, isManual, amount: amount||'', unit: unit||'' });
             const formatIngredient = (amount,unit,item,estimatedQty) => { if(estimatedQty)return `${estimatedQty} ${item}`; if(!unit||unit==='piece')return amount>0?`${amount} ${item}`:item; return amount>0?`${amount} ${unit} ${item}`:item; };
             const handleAddItem = (e) => { e.preventDefault(); if(newItem.item.trim()){onAddManualItem(newItem.item,parseFloat(newItem.amount)||0,newItem.unit,newItem.category);setNewItem({item:'',amount:'',unit:'',category:'fresh'});setShowAddItem(false);} };
             const grouped = (items) => { const g={}; items.forEach(item=>{const c=item.category||'other';if(!g[c])g[c]=[];g[c].push(item);}); Object.keys(g).forEach(c=>g[c].sort((a,b)=>a.checked-b.checked)); return g; };
@@ -1862,32 +1866,54 @@
                                             </div>
                                             <div className="divide-y" style={{ borderColor:'#f5ede1' }}>
                                                 {ri.map((item,idx) => (
-                                                    <div key={`r-${item.item}-${idx}`} className={`flex items-center px-5 py-4 transition ${item.checked?'opacity-40':''}`}>
-                                                        <input type="checkbox" checked={item.checked} onChange={()=>onToggleItem(item.item,false)} className="w-5 h-5 mr-4 flex-shrink-0 cursor-pointer" style={{ accentColor:'#d4a574' }} />
-                                                        <div className="flex-1 min-w-0">
-                                                            <div className={`font-medium ${item.checked?'line-through':''}`} style={{ color:'#3d2e1f' }}>
-                                                                {formatIngredient(item.amount,item.unit,item.item,item.estimatedQty)}
+                                                    <div key={`r-${item.item}-${idx}`} className={`px-5 py-4 transition ${item.checked?'opacity-40':''}`}>
+                                                        {editingItem?.id===item.item && !editingItem?.isManual ? (
+                                                            <div className="flex items-center gap-2">
+                                                                <input type="number" step="0.1" value={editingItem.amount} onChange={e=>setEditingItem({...editingItem,amount:e.target.value})} onBlur={()=>handleEditSave(item.item,false)} autoFocus className="w-20 px-2 py-1 rounded-lg border text-sm" style={{ border:'2px solid #d4a574', background:'#faf8f5' }} />
+                                                                <input type="text" value={editingItem.unit} onChange={e=>setEditingItem({...editingItem,unit:e.target.value})} onBlur={()=>handleEditSave(item.item,false)} placeholder="unit" className="w-20 px-2 py-1 rounded-lg border text-sm" style={{ border:'2px solid #d4a574', background:'#faf8f5' }} />
+                                                                <span className="flex-1 text-sm font-medium" style={{ color:'#3d2e1f' }}>{item.item}</span>
+                                                                <button onClick={()=>setEditingItem(null)} className="w-7 h-7 flex items-center justify-center rounded-full hover:opacity-80 transition" style={{ background:'#f5ede1', color:'#8b7355' }}>✕</button>
                                                             </div>
-                                                            {item.recipes?.some(r=>r.needs) && (
-                                                                <div className="text-xs mt-0.5" style={{ color:'#d4a574' }}>Needs: {[...new Set(item.recipes.filter(r=>r.needs).map(r=>r.needs))].join(', ')}</div>
-                                                            )}
-                                                            <div className="text-xs mt-0.5" style={{ color:'#8b7355' }}>
-                                                                {item.recipes?.map(r=>`${r.name} (${r.servings})`).join(' · ')}
+                                                        ) : (
+                                                            <div className="flex items-center">
+                                                                <input type="checkbox" checked={item.checked} onChange={()=>onToggleItem(item.item,false)} className="w-5 h-5 mr-4 flex-shrink-0 cursor-pointer" style={{ accentColor:'#d4a574' }} />
+                                                                <div className="flex-1 min-w-0 cursor-pointer" onClick={()=>startEdit(item.item,false,item.amount,item.unit)}>
+                                                                    <div className={`font-medium ${item.checked?'line-through':''}`} style={{ color:'#3d2e1f' }}>
+                                                                        {formatIngredient(item.amount,item.unit,item.item,item.estimatedQty)}
+                                                                    </div>
+                                                                    {item.recipes?.some(r=>r.needs) && (
+                                                                        <div className="text-xs mt-0.5" style={{ color:'#d4a574' }}>Needs: {[...new Set(item.recipes.filter(r=>r.needs).map(r=>r.needs))].join(', ')}</div>
+                                                                    )}
+                                                                    <div className="text-xs mt-0.5" style={{ color:'#8b7355' }}>
+                                                                        {item.recipes?.map(r=>`${r.name} (${r.servings})`).join(' · ')}
+                                                                    </div>
+                                                                </div>
+                                                                <button onClick={()=>onRemoveItem(item.item,false)} className="ml-3 w-7 h-7 flex items-center justify-center rounded-full hover:opacity-80 transition flex-shrink-0" style={{ background:'#fde8e8', color:'#f5576c' }}>✕</button>
                                                             </div>
-                                                        </div>
-                                                        <button onClick={()=>onRemoveItem(item.item,false)} className="ml-3 w-7 h-7 flex items-center justify-center rounded-full hover:opacity-80 transition flex-shrink-0" style={{ background:'#fde8e8', color:'#f5576c' }}>✕</button>
+                                                        )}
                                                     </div>
                                                 ))}
                                                 {mi.map(item => (
-                                                    <div key={item.id} className={`flex items-center px-5 py-4 transition ${item.checked?'opacity-40':''}`}>
-                                                        <input type="checkbox" checked={item.checked} onChange={()=>onToggleItem(item.id,true)} className="w-5 h-5 mr-4 flex-shrink-0 cursor-pointer" style={{ accentColor:'#d4a574' }} />
-                                                        <div className="flex-1 min-w-0">
-                                                            <div className={`font-medium ${item.checked?'line-through':''}`} style={{ color:'#3d2e1f' }}>
-                                                                {formatIngredient(item.amount,item.unit,item.item,item.estimatedQty)}
-                                                                <span className="ml-2 text-xs font-normal" style={{ color:'#8b7355' }}>(manual)</span>
+                                                    <div key={item.id} className={`px-5 py-4 transition ${item.checked?'opacity-40':''}`}>
+                                                        {editingItem?.id===item.id && editingItem?.isManual ? (
+                                                            <div className="flex items-center gap-2">
+                                                                <input type="number" step="0.1" value={editingItem.amount} onChange={e=>setEditingItem({...editingItem,amount:e.target.value})} onBlur={()=>handleEditSave(item.id,true)} autoFocus className="w-20 px-2 py-1 rounded-lg border text-sm" style={{ border:'2px solid #d4a574', background:'#faf8f5' }} />
+                                                                <input type="text" value={editingItem.unit} onChange={e=>setEditingItem({...editingItem,unit:e.target.value})} onBlur={()=>handleEditSave(item.id,true)} placeholder="unit" className="w-20 px-2 py-1 rounded-lg border text-sm" style={{ border:'2px solid #d4a574', background:'#faf8f5' }} />
+                                                                <span className="flex-1 text-sm font-medium" style={{ color:'#3d2e1f' }}>{item.item}</span>
+                                                                <button onClick={()=>setEditingItem(null)} className="w-7 h-7 flex items-center justify-center rounded-full hover:opacity-80 transition" style={{ background:'#f5ede1', color:'#8b7355' }}>✕</button>
                                                             </div>
-                                                        </div>
-                                                        <button onClick={()=>onRemoveItem(item.id,true)} className="ml-3 w-7 h-7 flex items-center justify-center rounded-full hover:opacity-80 transition flex-shrink-0" style={{ background:'#fde8e8', color:'#f5576c' }}>✕</button>
+                                                        ) : (
+                                                            <div className="flex items-center">
+                                                                <input type="checkbox" checked={item.checked} onChange={()=>onToggleItem(item.id,true)} className="w-5 h-5 mr-4 flex-shrink-0 cursor-pointer" style={{ accentColor:'#d4a574' }} />
+                                                                <div className="flex-1 min-w-0 cursor-pointer" onClick={()=>startEdit(item.id,true,item.amount,item.unit)}>
+                                                                    <div className={`font-medium ${item.checked?'line-through':''}`} style={{ color:'#3d2e1f' }}>
+                                                                        {formatIngredient(item.amount,item.unit,item.item,item.estimatedQty)}
+                                                                        <span className="ml-2 text-xs font-normal" style={{ color:'#8b7355' }}>(manual)</span>
+                                                                    </div>
+                                                                </div>
+                                                                <button onClick={()=>onRemoveItem(item.id,true)} className="ml-3 w-7 h-7 flex items-center justify-center rounded-full hover:opacity-80 transition flex-shrink-0" style={{ background:'#fde8e8', color:'#f5576c' }}>✕</button>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 ))}
                                             </div>
