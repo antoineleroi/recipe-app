@@ -1170,6 +1170,43 @@
             React.useEffect(()=>{ setEditorCode(household?.inviteCodes?.editor||null); setViewerCode(household?.inviteCodes?.viewer||null); },[household]);
 
             const handleSave = () => { localStorage.setItem('claudeApiKey', key); onSaveApiKey(key); localStorage.setItem('unsplashKey', uKey); onSaveUnsplashKey(uKey); toast('Settings saved','success'); };
+
+            const [reclassifying, setReclassifying] = useState(false);
+            const handleReclassify = async () => {
+                if (!confirm(`Reclassify all ${recipes.length} recipes into the new folder structure? This will replace existing folders.`)) return;
+                setReclassifying(true);
+                const assign = (recipe) => {
+                    const name = (recipe.name||'').toLowerCase();
+                    const tags = (recipe.tags||[]).map(t=>t.toLowerCase());
+                    const cuisine = (recipe.cuisine||'').toLowerCase();
+                    const dishType = (recipe.dishType||'').toLowerCase();
+                    const all = [name, ...tags, cuisine, dishType].join(' ');
+                    const folders = [];
+                    if (/chicken|poultry|turkey/.test(all)) folders.push('Chicken');
+                    if (/salmon|fish|tuna|cod|halibut|sea bass|sea bream|mackerel|anchovy|sardine|prawn|shrimp|seafood|crab|lobster|mussel|clam|squid|scallop/.test(all)) folders.push('Fish & Seafood');
+                    if (/beef|lamb|pork|steak|mince|sausage|bacon|chorizo|veal|venison|duck|meat/.test(all)) folders.push('Meat');
+                    if (/pasta|orzo|risotto|rice|noodle|grain|quinoa|couscous|gnocchi|spaghetti|penne|tagliatelle|fettuccine|linguine/.test(all)) folders.push('Pasta & Grains');
+                    if (/soup|stew|broth|chowder|bisque|curry|casserole|hotpot/.test(all)) folders.push('Soups & Stews');
+                    if (/vegetarian|vegan|veggie|tofu|lentil|chickpea|bean|tempeh/.test(all)) folders.push('Vegetarian');
+                    if (/salad|slaw|panzanella|light meal|bowl|tartare/.test(all)) folders.push('Salads & Light Meals');
+                    if (/traybake|tray bake|roast|baked|sheet pan/.test(all)) folders.push('Traybakes');
+                    if (/asian|japanese|chinese|thai|korean|vietnamese|sushi|bento|ramen|stir.fry|dim sum|dumpling|teriyaki|miso/.test(all)) folders.push('Asian');
+                    if (/middle eastern|lebanese|moroccan|turkish|persian|israeli|hummus|falafel|shawarma|tagine|za.atar|tahini/.test(all)) folders.push('Middle Eastern');
+                    if (/sauce|dressing|condiment|dip|marinade|vinaigrette|pesto|salsa|chutney|relish|jam|preserve/.test(all)) folders.push('Condiments & Sauces');
+                    if (/juice|drink|smoothie|cocktail|mocktail|shake|lemonade|tea|coffee/.test(all)) folders.push('Juices & Drinks');
+                    if (/breakfast|brunch|pancake|waffle|egg|omelette|granola|porridge|muesli|toast/.test(all)) folders.push('Breakfast');
+                    if (folders.length === 0) folders.push('Vegetarian'); // fallback
+                    return folders;
+                };
+                let count = 0;
+                for (const recipe of recipes) {
+                    const newFolders = assign(recipe);
+                    await storage.updateRecipe(recipe.id, { folders: newFolders });
+                    count++;
+                }
+                setReclassifying(false);
+                toast(`✅ Reclassified ${count} recipes`, 'success');
+            };
             const handleExport = () => {
                 const dataStr = JSON.stringify(recipes, null, 2);
                 const url = URL.createObjectURL(new Blob([dataStr], { type:'application/json' }));
@@ -1211,6 +1248,11 @@
                             <label className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition block text-center cursor-pointer">📤 Import Recipes from File<input type="file" accept=".json" onChange={handleImport} className="hidden" /></label>
                         </div>
                         <div className="mt-4 p-4 bg-yellow-50 rounded-lg border-l-4 border-yellow-400"><p className="text-sm text-yellow-800"><strong>⚠️ Important:</strong> Export your recipes regularly as a backup.</p></div>
+                    </div>
+                    <div className="rounded-lg shadow-md p-6 mt-6" style={{ background:'#fffef9',border:'2px solid #e8dfd3' }}>
+                        <h2 className="text-xl font-bold mb-2" style={{ color:'#3d2e1f' }}>Folder Reclassification</h2>
+                        <p className="mb-4 text-sm" style={{ color:'#8b7355' }}>Reclassify all recipes into the new folder structure: Chicken, Fish & Seafood, Meat, Pasta & Grains, Soups & Stews, Vegetarian, Salads & Light Meals, Traybakes, Asian, Middle Eastern, Condiments & Sauces, Juices & Drinks, Breakfast, Base. This replaces all existing folders.</p>
+                        <button onClick={handleReclassify} disabled={reclassifying} className="w-full text-white py-3 rounded-lg font-semibold hover:opacity-90 transition disabled:opacity-50" style={{ background:'#d4a574' }}>{reclassifying ? `⏳ Reclassifying...` : `📂 Reclassify All ${recipes.length} Recipes`}</button>
                     </div>
                     <div className="rounded-lg shadow-md p-6 mt-6" style={{ background:'#fffef9',border:'2px solid #e8dfd3' }}>
                         <h2 className="text-xl font-bold mb-4" style={{ color:'#3d2e1f' }}>Import Built-in Recipes</h2>
