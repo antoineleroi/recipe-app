@@ -78,7 +78,7 @@ exports.handler = async (event, context) => {
   "cookTime": 30,
   "servings": 4,
   "tags": ["tag1", "tag2"],
-  "folders": ["folder from: Chicken, Fish & Seafood, Meat, Pasta & Grains, Soups & Stews, Vegetarian, Salads & Light Meals, Traybakes, Asian, Middle Eastern, Condiments & Sauces, Juices & Drinks, Breakfast, Base"],
+  "folders": ["one or more from: Chicken, Fish & Seafood, Meat, Pasta, Noodles, Rice & Grains, Soups & Stews, Vegetarian, Salads & Light Meals, Traybakes, Japanese, Chinese, Indian, Asian, Middle Eastern, Condiments & Sauces, Juices & Drinks, Breakfast, Base — can overlap, e.g. a ramen dish gets both Noodles and Japanese and Asian"],
   "ingredients": [
     {"item": "ingredient name", "amount": 1, "unit": "cup", "category": "fresh"}
   ],
@@ -111,7 +111,7 @@ IMPORTANT RULES FOR INGREDIENTS:
   "cookTime": 30,
   "servings": 4,
   "tags": ["tag1", "tag2"],
-  "folders": ["folder from: Chicken, Fish & Seafood, Meat, Pasta & Grains, Soups & Stews, Vegetarian, Salads & Light Meals, Traybakes, Asian, Middle Eastern, Condiments & Sauces, Juices & Drinks, Breakfast, Base"],
+  "folders": ["one or more from: Chicken, Fish & Seafood, Meat, Pasta, Noodles, Rice & Grains, Soups & Stews, Vegetarian, Salads & Light Meals, Traybakes, Japanese, Chinese, Indian, Asian, Middle Eastern, Condiments & Sauces, Juices & Drinks, Breakfast, Base — can overlap, e.g. a ramen dish gets both Noodles and Japanese and Asian"],
   "ingredients": [
     {"item": "ingredient name", "amount": 1, "unit": "cup", "category": "fresh"}
   ],

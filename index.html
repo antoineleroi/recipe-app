@@ -985,7 +985,7 @@
         // ─── HOME VIEW ────────────────────────────────────────────────────────────
         function HomeView({ recipes, allRecipes, onAddClick, onShoppingClick, onMealPlanClick, onRecipeClick, searchQuery, setSearchQuery, selectedFolder, setSelectedFolder, selectedTags, setSelectedTags, allFolders, allTags, shoppingListCount, mealPlanCount, user, onLogout, onSettings, onImageUpload, onPDFUpload, canEdit }) {
             const [addMenuOpen, setAddMenuOpen] = useState(false);
-            const ORDERED_FOLDERS = ['Chicken','Fish & Seafood','Meat','Pasta & Grains','Soups & Stews','Vegetarian','Salads & Light Meals','Traybakes','Asian','Middle Eastern','Condiments & Sauces','Juices & Drinks','Breakfast','Base'];
+            const ORDERED_FOLDERS = ['Chicken','Fish & Seafood','Meat','Pasta','Noodles','Rice & Grains','Soups & Stews','Vegetarian','Salads & Light Meals','Traybakes','Japanese','Chinese','Indian','Asian','Middle Eastern','Condiments & Sauces','Juices & Drinks','Breakfast','Base'];
             const folders = ORDERED_FOLDERS.filter(f => allFolders.includes(f));
 
             return (
@@ -1158,20 +1158,26 @@
                     const cuisine = (recipe.cuisine||'').toLowerCase();
                     const dishType = (recipe.dishType||'').toLowerCase();
                     const all = [name, ...tags, cuisine, dishType].join(' ');
+                    const nameOnly = [name, cuisine, dishType].join(' ');
                     const folders = [];
                     if (/chicken|poultry|turkey/.test(all)) folders.push('Chicken');
                     if (/salmon|fish|tuna|cod|halibut|sea bass|sea bream|mackerel|anchovy|sardine|prawn|shrimp|seafood|crab|lobster|mussel|clam|squid|scallop/.test(all)) folders.push('Fish & Seafood');
                     if (/beef|lamb|pork|steak|mince|sausage|bacon|chorizo|veal|venison|duck|meat/.test(all)) folders.push('Meat');
-                    if (/pasta|orzo|risotto|rice|noodle|grain|quinoa|couscous|gnocchi|spaghetti|penne|tagliatelle|fettuccine|linguine/.test(all)) folders.push('Pasta & Grains');
+                    if (/\bpasta\b|orzo|gnocchi|spaghetti|penne|tagliatelle|fettuccine|linguine|rigatoni|lasagne|lasagna/.test(all)) folders.push('Pasta');
+                    if (/noodle|ramen|udon|soba|pad thai|lo mein|chow mein|vermicelli/.test(all)) folders.push('Noodles');
+                    if (/\brice\b|risotto|quinoa|couscous|grain|pilaf|fried rice/.test(all)) folders.push('Rice & Grains');
                     if (/soup|stew|broth|chowder|bisque|curry|casserole|hotpot/.test(all)) folders.push('Soups & Stews');
                     if (/vegetarian|vegan|veggie|tofu|lentil|chickpea|bean|tempeh/.test(all)) folders.push('Vegetarian');
-                    if (/salad|slaw|panzanella|light meal|bowl|tartare/.test(all)) folders.push('Salads & Light Meals');
+                    if (/\bsalad\b|slaw|panzanella|light meal/.test(all)) folders.push('Salads & Light Meals');
                     if (/traybake|tray bake|roast|baked|sheet pan/.test(all)) folders.push('Traybakes');
-                    if (/asian|japanese|chinese|thai|korean|vietnamese|sushi|bento|ramen|stir.fry|dim sum|dumpling|teriyaki|miso/.test(all)) folders.push('Asian');
+                    if (/japanese|sushi|bento|teriyaki|miso|ramen|udon|soba|tempura|tonkatsu/.test(all)) folders.push('Japanese');
+                    if (/chinese|dim sum|dumpling|wonton|char siu|peking|szechuan|cantonese|stir.fry/.test(all)) folders.push('Chinese');
+                    if (/indian|curry|tikka|masala|biryani|dal|dhal|tandoori|korma|vindaloo|naan|paneer/.test(all)) folders.push('Indian');
+                    if (/asian|japanese|chinese|indian|thai|korean|vietnamese|sushi|bento|ramen|stir.fry|dim sum|dumpling|teriyaki|miso|pad thai|banh mi|kimchi|pho/.test(all)) folders.push('Asian');
                     if (/middle eastern|lebanese|moroccan|turkish|persian|israeli|hummus|falafel|shawarma|tagine|za.atar|tahini/.test(all)) folders.push('Middle Eastern');
-                    if (/sauce|dressing|condiment|dip|marinade|vinaigrette|pesto|salsa|chutney|relish|jam|preserve/.test(all)) folders.push('Condiments & Sauces');
-                    if (/juice|drink|smoothie|cocktail|mocktail|shake|lemonade|tea|coffee/.test(all)) folders.push('Juices & Drinks');
-                    if (/breakfast|brunch|pancake|waffle|egg|omelette|granola|porridge|muesli|toast/.test(all)) folders.push('Breakfast');
+                    if (/\bsauce\b|dressing|condiment|\bdip\b|marinade|vinaigrette|pesto|salsa|chutney|relish|\bjam\b|preserve/.test(nameOnly)) folders.push('Condiments & Sauces');
+                    if (/\bjuice\b|\bdrink\b|smoothie|cocktail|mocktail|shake|lemonade|\btea\b|\bcoffee\b/.test(nameOnly)) folders.push('Juices & Drinks');
+                    if (/breakfast|brunch|pancake|waffle|omelette|granola|porridge|muesli/.test(nameOnly)) folders.push('Breakfast');
                     if (folders.length === 0) folders.push('Vegetarian'); // fallback
                     return folders;
                 };
