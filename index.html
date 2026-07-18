@@ -175,6 +175,16 @@
                 await db.collection('recipes').doc(id).update({ ...updates, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
             },
             deleteRecipe: async (id) => { await db.collection('recipes').doc(id).delete(); },
+            addToDeletedLibraryRecipes: async (householdId, recipeName) => {
+                await db.collection('households').doc(householdId).update({
+                    deletedLibraryRecipes: firebase.firestore.FieldValue.arrayUnion(recipeName.toLowerCase().trim())
+                });
+            },
+            getDeletedLibraryRecipes: async (householdId) => {
+                if (!householdId) return [];
+                const doc = await db.collection('households').doc(householdId).get();
+                return doc.exists ? (doc.data().deletedLibraryRecipes || []) : [];
+            },
             getAllTags: (recipes) => { const s = new Set(); recipes.forEach(r => (r.tags||[]).forEach(t => s.add(t))); return Array.from(s).sort(); },
             getAllFolders: (recipes) => { const s = new Set(); recipes.forEach(r => (r.folders||[]).forEach(f => s.add(f))); return Array.from(s).sort(); },
 
@@ -818,8 +828,10 @@
                 let added = 0, skipped = 0;
                 try {
                     const existingNames = new Set(recipes.map(r => r.name.toLowerCase().trim()));
+                    const deletedNames = new Set(await storage.getDeletedLibraryRecipes(householdId));
                     for (const recipe of initialRecipes) {
-                        if (existingNames.has(recipe.name.toLowerCase().trim())) { skipped++; }
+                        const key = recipe.name.toLowerCase().trim();
+                        if (existingNames.has(key) || deletedNames.has(key)) { skipped++; }
                         else { await storage.addRecipe(recipe); added++; }
                     }
                     toast(`${added} new recipes added, ${skipped} already existed`, 'success', 5000);
@@ -987,7 +999,7 @@
                     {view==='home' && <HomeView recipes={filteredRecipes} allRecipes={recipes} onAddClick={()=>setView('add')} onShoppingClick={()=>setView('shopping')} onMealPlanClick={()=>setView('mealplanner')} onRecipeClick={(r)=>{setSelectedRecipe(r);setCompletedSteps([]);setScaledServings(r.servings);setView('recipe');}} searchQuery={searchQuery} setSearchQuery={setSearchQuery} selectedFolder={selectedFolder} setSelectedFolder={setSelectedFolder} selectedTags={selectedTags} setSelectedTags={setSelectedTags} allFolders={allFolders} allTags={allTags} shoppingListCount={shoppingList.items.length+shoppingList.manualItems.length} mealPlanCount={Object.keys(mealPlan.days||{}).length} user={user} onLogout={()=>auth.signOut()} onSettings={()=>setView('settings')} onImageUpload={handleImageUpload} onPDFUpload={handlePDFUpload} canEdit={canEdit} />}
                     {view==='add' && canEdit && <AddRecipeView onBack={()=>setView('home')} onSubmit={handleAddRecipe} processing={processing} />}
                     {view==='edit' && selectedRecipe && canEdit && <AddRecipeView initialRecipe={selectedRecipe} onBack={()=>setView('recipe')} onSubmit={async(updatedRecipe)=>{setProcessing(true);await storage.updateRecipe(updatedRecipe.id,updatedRecipe);setSelectedRecipe(updatedRecipe);setScaledServings(updatedRecipe.servings);setProcessing(false);setView('recipe');}} processing={processing} unsplashKey={unsplashKey} />}
-                    {view==='recipe' && selectedRecipe && <RecipeDetailView recipe={selectedRecipe} onBack={()=>setView('home')} onStartCooking={()=>setView('cooking')} onAddToShoppingList={async(servings)=>{await storage.addToShoppingList(user.uid,householdId,selectedRecipe,servings);toast(`"${selectedRecipe.name}" added to shopping list`,'success');}} scaledServings={scaledServings} setScaledServings={setScaledServings} onEdit={canEdit?()=>setView('edit'):null} onDelete={canEdit?async()=>{if(window.confirm(`Delete "${selectedRecipe.name}"?`)){await storage.deleteRecipe(selectedRecipe.id);setSelectedRecipe(null);setView('home');toast('Recipe deleted','info');}}:null} estimateNutrition={estimateNutrition} setSelectedRecipe={setSelectedRecipe} onAddToMealPlan={()=>{setMealPlannerPreselect(selectedRecipe);setView('mealplanner');}} canEdit={canEdit} />}
+                    {view==='recipe' && selectedRecipe && <RecipeDetailView recipe={selectedRecipe} onBack={()=>setView('home')} onStartCooking={()=>setView('cooking')} onAddToShoppingList={async(servings)=>{await storage.addToShoppingList(user.uid,householdId,selectedRecipe,servings);toast(`"${selectedRecipe.name}" added to shopping list`,'success');}} scaledServings={scaledServings} setScaledServings={setScaledServings} onEdit={canEdit?()=>setView('edit'):null} onDelete={canEdit?async()=>{if(window.confirm(`Delete "${selectedRecipe.name}"?`)){await storage.deleteRecipe(selectedRecipe.id);if(householdId)await storage.addToDeletedLibraryRecipes(householdId,selectedRecipe.name);setSelectedRecipe(null);setView('home');toast('Recipe deleted','info');}}:null} estimateNutrition={estimateNutrition} setSelectedRecipe={setSelectedRecipe} onAddToMealPlan={()=>{setMealPlannerPreselect(selectedRecipe);setView('mealplanner');}} canEdit={canEdit} />}
                     {view==='cooking' && selectedRecipe && <CookingModeView recipe={selectedRecipe} onExit={()=>setView('recipe')} completedSteps={completedSteps} setCompletedSteps={setCompletedSteps} scaledServings={scaledServings} />}
                     {view==='shopping' && <ShoppingListView shoppingList={shoppingList} onBack={()=>setView('home')} onToggleItem={async(id,isManual)=>await storage.toggleShoppingItem(user.uid,householdId,id,isManual)} onAddManualItem={async(item,amount,unit,category)=>await storage.addManualItem(user.uid,householdId,item,amount,unit,category)} onRemoveItem={async(id,isManual)=>await storage.removeShoppingItem(user.uid,householdId,id,isManual)} onEditItem={async(id,isManual,amount,unit)=>await storage.editShoppingItem(user.uid,householdId,id,isManual,amount,unit)} onRemoveRecipe={async(name)=>await storage.removeRecipeFromShoppingList(user.uid,householdId,name)} onClearList={async()=>{if(window.confirm('Clear entire shopping list?')){await storage.clearShoppingList(user.uid,householdId);toast('Shopping list cleared','info');}}} canEdit={canEdit} />}
                     {view==='mealplanner' && <MealPlannerView mealPlan={mealPlan} recipes={recipes} onBack={()=>{setMealPlannerPreselect(null);setView('home');}} onAddRecipe={async(dayKey,mealType,recipeId,servings,manualText)=>{if(recipeId==='manual')await storage.addManualEntryToMealPlan(user.uid,householdId,dayKey,mealType,manualText);else await storage.addRecipeToMealPlan(user.uid,householdId,dayKey,mealType,recipeId,servings);}} onRemoveRecipe={async(dayKey,mealType,index)=>await storage.removeRecipeFromMealPlan(user.uid,householdId,dayKey,mealType,index)} onUpdateNotes={async(dayKey,notes)=>await storage.updateDayNotes(user.uid,householdId,dayKey,notes)} onClearPlan={async()=>{if(window.confirm('Clear entire meal plan?')){await storage.clearMealPlan(user.uid,householdId);toast('Meal plan cleared','info');}}} onAddToShoppingList={async()=>{const count=await storage.addMealPlanToShoppingList(user.uid,householdId,recipes);toast(`${count} recipes added to shopping list`,'success');}} mealPlanPeople={mealPlanPeople} setMealPlanPeople={setMealPlanPeople} preselectedRecipe={mealPlannerPreselect} canEdit={canEdit} />}
