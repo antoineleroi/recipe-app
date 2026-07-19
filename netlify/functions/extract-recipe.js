@@ -78,7 +78,7 @@ exports.handler = async (event, context) => {
   "cookTime": 30,
   "servings": 4,
   "tags": ["tag1", "tag2"],
-  "folders": ["one or more from: Chicken, Fish & Seafood, Meat, Pasta, Noodles, Rice & Grains, Soups & Stews, Vegetarian, Salads & Light Meals, Traybakes, Japanese, Chinese, Indian, Asian, Middle Eastern, Condiments & Sauces, Juices & Drinks, Breakfast, Base — can overlap, e.g. a ramen dish gets both Noodles and Japanese and Asian"],
+  "folders": ["see rules below"],
   "ingredients": [
     {"item": "ingredient name", "amount": 1, "unit": "cup", "category": "fresh"}
   ],
@@ -90,7 +90,39 @@ exports.handler = async (event, context) => {
   "notes": "Any notes"
 }
 
-IMPORTANT RULES FOR INGREDIENTS:
+FOLDER ASSIGNMENT RULES (pick from this list only):
+Chicken, Fish & Seafood, Meat, Pasta, Noodles, Rice & Grains, Soups & Stews, Vegetarian, Salads, Traybakes, Starters & Small Plates, Japanese, Chinese, Korean, Indian, South East Asian, Asian, Middle Eastern, French, Mexican & Latin, Caribbean, Condiments & Sauces, Juices & Drinks, Breakfast, Base, Dessert
+
+- Chicken: only if primary protein is chicken
+- Fish & Seafood: only if primary protein is fish or seafood
+- Meat: beef, lamb, pork, duck, game — NOT chicken, NOT fish
+- Pasta: Italian-style pasta dishes
+- Noodles: Asian noodle dishes (ramen, pad thai, soba, etc.)
+- Rice & Grains: dishes where rice or grains are a central component
+- Soups & Stews: soups, broths, stews, curries
+- Vegetarian: genuinely vegetarian MEALS only — no meat, no fish. Do NOT add to juices, condiments, sauces, or desserts
+- Salads: actual salads only — NOT steaks, NOT heavy mains, NOT tartare
+- Traybakes: everything roasted together on one tray
+- Starters & Small Plates: starters, appetisers, small sharing plates (carpaccio, gravadlax, dim sum, cured fish, etc.)
+- Japanese: Japanese cuisine — add ALONGSIDE Chicken/Fish/Meat/etc.
+- Chinese: Chinese cuisine — add ALONGSIDE food-type folder
+- Korean: Korean cuisine — add ALONGSIDE food-type folder
+- Indian: Indian cuisine — add ALONGSIDE food-type folder
+- South East Asian: Thai, Vietnamese, Filipino, Malaysian, Indonesian, Singaporean — MORE SPECIFIC than Asian, use instead of Asian
+- Asian: general Asian dishes not fitting Japanese/Chinese/Korean/Indian/South East Asian
+- Middle Eastern: Lebanese, Turkish, Persian, Israeli, Moroccan
+- French: French cuisine (bistro dishes, classic French technique)
+- Mexican & Latin: Mexican, Peruvian, Latin American
+- Caribbean: Caribbean, Jamaican
+- Condiments & Sauces: dips, sauces, dressings, pickles, marinades ONLY — not main courses
+- Juices & Drinks: beverages only
+- Breakfast: breakfast dishes only
+- Base: stocks, building-block preparations used in other recipes
+- Dessert: sweet desserts, puddings, cakes, pastries
+- A recipe can have multiple folders (e.g. Japanese ramen: ["Noodles","Soups & Stews","Japanese"])
+- Do NOT invent folder names outside this list
+
+INGREDIENT RULES:
 - Consolidate duplicate ingredients (e.g., "water for sauce" + "water for pickling" = "water")
 - Remove usage descriptors like "for X", "for the Y" - just use the base ingredient name
 - If same ingredient appears multiple times with different amounts, add them together
@@ -111,7 +143,7 @@ IMPORTANT RULES FOR INGREDIENTS:
   "cookTime": 30,
   "servings": 4,
   "tags": ["tag1", "tag2"],
-  "folders": ["one or more from: Chicken, Fish & Seafood, Meat, Pasta, Noodles, Rice & Grains, Soups & Stews, Vegetarian, Salads & Light Meals, Traybakes, Japanese, Chinese, Indian, Asian, Middle Eastern, Condiments & Sauces, Juices & Drinks, Breakfast, Base — can overlap, e.g. a ramen dish gets both Noodles and Japanese and Asian"],
+  "folders": ["see rules below"],
   "ingredients": [
     {"item": "ingredient name", "amount": 1, "unit": "cup", "category": "fresh"}
   ],
@@ -123,7 +155,39 @@ IMPORTANT RULES FOR INGREDIENTS:
   "notes": "Any notes"
 }
 
-IMPORTANT RULES FOR INGREDIENTS:
+FOLDER ASSIGNMENT RULES (pick from this list only):
+Chicken, Fish & Seafood, Meat, Pasta, Noodles, Rice & Grains, Soups & Stews, Vegetarian, Salads, Traybakes, Starters & Small Plates, Japanese, Chinese, Korean, Indian, South East Asian, Asian, Middle Eastern, French, Mexican & Latin, Caribbean, Condiments & Sauces, Juices & Drinks, Breakfast, Base, Dessert
+
+- Chicken: only if primary protein is chicken
+- Fish & Seafood: only if primary protein is fish or seafood
+- Meat: beef, lamb, pork, duck, game — NOT chicken, NOT fish
+- Pasta: Italian-style pasta dishes
+- Noodles: Asian noodle dishes (ramen, pad thai, soba, etc.)
+- Rice & Grains: dishes where rice or grains are a central component
+- Soups & Stews: soups, broths, stews, curries
+- Vegetarian: genuinely vegetarian MEALS only — no meat, no fish. Do NOT add to juices, condiments, sauces, or desserts
+- Salads: actual salads only — NOT steaks, NOT heavy mains, NOT tartare
+- Traybakes: everything roasted together on one tray
+- Starters & Small Plates: starters, appetisers, small sharing plates (carpaccio, gravadlax, dim sum, cured fish, etc.)
+- Japanese: Japanese cuisine — add ALONGSIDE Chicken/Fish/Meat/etc.
+- Chinese: Chinese cuisine — add ALONGSIDE food-type folder
+- Korean: Korean cuisine — add ALONGSIDE food-type folder
+- Indian: Indian cuisine — add ALONGSIDE food-type folder
+- South East Asian: Thai, Vietnamese, Filipino, Malaysian, Indonesian, Singaporean — MORE SPECIFIC than Asian, use instead of Asian
+- Asian: general Asian dishes not fitting Japanese/Chinese/Korean/Indian/South East Asian
+- Middle Eastern: Lebanese, Turkish, Persian, Israeli, Moroccan
+- French: French cuisine (bistro dishes, classic French technique)
+- Mexican & Latin: Mexican, Peruvian, Latin American
+- Caribbean: Caribbean, Jamaican
+- Condiments & Sauces: dips, sauces, dressings, pickles, marinades ONLY — not main courses
+- Juices & Drinks: beverages only
+- Breakfast: breakfast dishes only
+- Base: stocks, building-block preparations used in other recipes
+- Dessert: sweet desserts, puddings, cakes, pastries
+- A recipe can have multiple folders (e.g. Japanese ramen: ["Noodles","Soups & Stews","Japanese"])
+- Do NOT invent folder names outside this list
+
+INGREDIENT RULES:
 - Consolidate duplicate ingredients (e.g., "water for sauce" + "water for pickling" = "water")
 - Remove usage descriptors like "for X", "for the Y" - just use the base ingredient name
 - If same ingredient appears multiple times with different amounts, add them together
