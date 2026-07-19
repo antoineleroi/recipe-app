@@ -3680,6 +3680,10 @@
                 finally { setProcessing(false); }
             };
 
+            const LOW_CAL_EXCLUDED_FOLDERS = ['Juices & Drinks','Condiments & Sauces','Base','Dessert'];
+            const LOW_CAL_EXCLUDED_TYPES = ['juice','drink','smoothie','shot','sauce','dip','dressing','pickle','condiment','stock','broth','dessert','pudding','cake','pastry'];
+            const isLowCalMeal = (r) => r.nutrition?.calories > 0 && r.nutrition.calories < 500 && !LOW_CAL_EXCLUDED_TYPES.some(t => (r.dishType||'').toLowerCase().includes(t)) && !LOW_CAL_EXCLUDED_FOLDERS.some(f => (r.folders||[]).includes(f));
+
             const filteredRecipes = recipes.filter(recipe => {
                 if (searchQuery) { const q=searchQuery.trim().toLowerCase(); if(!recipe.name?.toLowerCase().includes(q)&&!recipe.ingredients?.some(i=>i.item.toLowerCase().includes(q))&&!recipe.tags?.some(t=>t.toLowerCase().includes(q)))return false; }
                 if (selectedFolder === 'Low Calorie') { if (!isLowCalMeal(recipe)) return false; }
@@ -3739,8 +3743,6 @@
         function HomeView({ recipes, allRecipes, onAddClick, onShoppingClick, onMealPlanClick, onRecipeClick, searchQuery, setSearchQuery, selectedFolder, setSelectedFolder, selectedTags, setSelectedTags, allFolders, allTags, shoppingListCount, mealPlanCount, user, onLogout, onSettings, onImageUpload, onPDFUpload, canEdit }) {
             const [addMenuOpen, setAddMenuOpen] = useState(false);
             const ORDERED_FOLDERS = ['Chicken','Fish & Seafood','Meat','Pasta','Noodles','Rice & Grains','Soups & Stews','Vegetarian','Low Calorie','Salads','Traybakes','Starters & Small Plates','Japanese','Chinese','Korean','Indian','South East Asian','Asian','Middle Eastern','French','Mexican & Latin','Caribbean','Condiments & Sauces','Juices & Drinks','Breakfast','Base','Dessert'];
-            const LOW_CAL_EXCLUDED_TYPES = ['juice','drink','smoothie','shot','sauce','dip','dressing','pickle','condiment','stock','broth','dessert','pudding','cake','pastry'];
-            const isLowCalMeal = (r) => r.nutrition?.calories > 0 && r.nutrition.calories < 500 && !LOW_CAL_EXCLUDED_TYPES.some(t => (r.dishType||'').toLowerCase().includes(t)) && !['Juices & Drinks','Condiments & Sauces','Base','Dessert'].some(f => (r.folders||[]).includes(f));
             const folders = ['Low Calorie', ...ORDERED_FOLDERS.filter(f => f !== 'Low Calorie' && allFolders.includes(f))];
 
             return (
@@ -3905,45 +3907,24 @@
 
             const [reclassifying, setReclassifying] = useState(false);
             const handleReclassify = async () => {
-                if (!confirm(`Reclassify all ${recipes.length} recipes into the new folder structure? This will replace existing folders.`)) return;
+                if (!confirm(`Reclassify all ${recipes.length} recipes using the updated folder structure? This will replace existing folders.`)) return;
                 setReclassifying(true);
-                const assign = (recipe) => {
-                    const name = (recipe.name||'').toLowerCase();
-                    const tags = (recipe.tags||[]).map(t=>t.toLowerCase());
-                    const cuisine = (recipe.cuisine||'').toLowerCase();
-                    const dishType = (recipe.dishType||'').toLowerCase();
-                    const all = [name, ...tags, cuisine, dishType].join(' ');
-                    const nameOnly = [name, cuisine, dishType].join(' ');
-                    const folders = [];
-                    if (/chicken|poultry|turkey/.test(all)) folders.push('Chicken');
-                    if (/salmon|fish|tuna|cod|halibut|sea bass|sea bream|mackerel|anchovy|sardine|prawn|shrimp|seafood|crab|lobster|mussel|clam|squid|scallop/.test(all)) folders.push('Fish & Seafood');
-                    if (/beef|lamb|pork|steak|mince|sausage|bacon|chorizo|veal|venison|duck|meat/.test(all)) folders.push('Meat');
-                    if (/\bpasta\b|orzo|gnocchi|spaghetti|penne|tagliatelle|fettuccine|linguine|rigatoni|lasagne|lasagna/.test(all)) folders.push('Pasta');
-                    if (/noodle|ramen|udon|soba|pad thai|lo mein|chow mein|vermicelli/.test(all)) folders.push('Noodles');
-                    if (/\brice\b|risotto|quinoa|couscous|grain|pilaf|fried rice/.test(all)) folders.push('Rice & Grains');
-                    if (/soup|stew|broth|chowder|bisque|curry|casserole|hotpot/.test(all)) folders.push('Soups & Stews');
-                    if (/vegetarian|vegan|veggie|tofu|lentil|chickpea|bean|tempeh/.test(all)) folders.push('Vegetarian');
-                    if (/\bsalad\b|slaw|panzanella|light meal/.test(all)) folders.push('Salads & Light Meals');
-                    if (/traybake|tray bake|roast|baked|sheet pan/.test(all)) folders.push('Traybakes');
-                    if (/japanese|sushi|bento|teriyaki|miso|ramen|udon|soba|tempura|tonkatsu/.test(all)) folders.push('Japanese');
-                    if (/chinese|dim sum|dumpling|wonton|char siu|peking|szechuan|cantonese|stir.fry/.test(all)) folders.push('Chinese');
-                    if (/indian|curry|tikka|masala|biryani|dal|dhal|tandoori|korma|vindaloo|naan|paneer/.test(all)) folders.push('Indian');
-                    if (/asian|japanese|chinese|indian|thai|korean|vietnamese|sushi|bento|ramen|stir.fry|dim sum|dumpling|teriyaki|miso|pad thai|banh mi|kimchi|pho/.test(all)) folders.push('Asian');
-                    if (/middle eastern|lebanese|moroccan|turkish|persian|israeli|hummus|falafel|shawarma|tagine|za.atar|tahini/.test(all)) folders.push('Middle Eastern');
-                    if (/\bsauce\b|dressing|condiment|\bdip\b|marinade|vinaigrette|pesto|salsa|chutney|relish|\bjam\b|preserve/.test(nameOnly)) folders.push('Condiments & Sauces');
-                    if (/\bjuice\b|\bdrink\b|smoothie|cocktail|mocktail|shake|lemonade|\btea\b|\bcoffee\b/.test(nameOnly)) folders.push('Juices & Drinks');
-                    if (/breakfast|brunch|pancake|waffle|omelette|granola|porridge|muesli/.test(nameOnly)) folders.push('Breakfast');
-                    if (folders.length === 0) folders.push('Vegetarian'); // fallback
-                    return folders;
-                };
-                let count = 0;
+                // Build lookup from initialRecipes by normalised name
+                const libraryMap = {};
+                initialRecipes.forEach(r => { libraryMap[r.name.toLowerCase().trim()] = r.folders; });
+                let count = 0, skipped = 0;
                 for (const recipe of recipes) {
-                    const newFolders = assign(recipe);
-                    await storage.updateRecipe(recipe.id, { folders: newFolders });
-                    count++;
+                    const key = (recipe.name||'').toLowerCase().trim();
+                    const newFolders = libraryMap[key];
+                    if (newFolders) {
+                        await storage.updateRecipe(recipe.id, { folders: newFolders });
+                        count++;
+                    } else {
+                        skipped++;
+                    }
                 }
                 setReclassifying(false);
-                toast(`✅ Reclassified ${count} recipes`, 'success');
+                toast(`✅ Reclassified ${count} recipes${skipped ? ` (${skipped} custom recipes unchanged)` : ''}`, 'success');
             };
             const handleExport = () => {
                 const dataStr = JSON.stringify(recipes, null, 2);
